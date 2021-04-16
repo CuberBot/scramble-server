@@ -1,15 +1,18 @@
 package net.lz1998.puzzle
 
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.worldcubeassociation.tnoodle.puzzle.*
 import org.worldcubeassociation.tnoodle.scrambles.Puzzle
 
 val log: Logger = LoggerFactory.getLogger(Puzzles::class.java)
+val processorNum = Runtime.getRuntime().availableProcessors()
+val coroutineContext = newFixedThreadPoolContext(
+    1.coerceAtLeast(processorNum - 1),
+    "scramble-producer"
+)
 
 class MyCubePuzzle(val size: Int) : CubePuzzle(size) {
     override fun getRandomMoveCount(): Int {
@@ -49,7 +52,7 @@ enum class Puzzles(val puzzle: Puzzle) {
     val shortName: String = puzzle.shortName
 
     init {
-        GlobalScope.launch {
+        CoroutineScope(coroutineContext).launch {
             while (true) {
                 cacheQueue.send(puzzle.generateScramble())
                 log.info("produce scramble ${puzzle.shortName}")
