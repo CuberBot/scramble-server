@@ -52,11 +52,14 @@ enum class Puzzles(val puzzle: Puzzle) {
     val shortName: String = puzzle.shortName
 
     init {
-        CoroutineScope(coroutineContext).launch {
-            while (true) {
-                cacheQueue.send(puzzle.generateScramble())
-                log.info("produce scramble ${puzzle.shortName}")
-                delay(10)
+        for (i in 1..3) {
+            // 3 coroutines per type
+            CoroutineScope(coroutineContext).launch {
+                while (true) {
+                    cacheQueue.send(puzzle.generateScramble())
+                    log.info("produce scramble ${puzzle.shortName}")
+                    delay(10)
+                }
             }
         }
     }
